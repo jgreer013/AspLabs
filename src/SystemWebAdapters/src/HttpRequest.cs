@@ -23,8 +23,10 @@ namespace System.Web
 
         private RequestHeaders? _typedHeaders;
         private string[]? _userLanguages;
-        private StringValuesNameValueCollection? _headers;
-        private ServerVariablesNameValueCollection? _serverVariables;
+        private NameValueCollection? _headers;
+        private NameValueCollection? _serverVariables;
+        private NameValueCollection? _form;
+        private NameValueCollection? _query;
 
         public HttpRequest(HttpRequestCore request)
         {
@@ -33,7 +35,7 @@ namespace System.Web
 
         public string? Path => _request.Path.Value;
 
-        public NameValueCollection Headers => _headers ??= new(_request.Headers);
+        public NameValueCollection Headers => _headers ??= _request.Headers.ToNameValueCollection();
 
         public Uri Url => new(_request.GetEncodedUrl());
 
@@ -84,7 +86,7 @@ namespace System.Web
 
         public string RequestType => HttpMethod;
 
-        public NameValueCollection Form => throw new NotImplementedException();
+        public NameValueCollection Form => _form ??= _request.Form.ToNameValueCollection();
 
         public HttpCookieCollection Cookies => throw new NotImplementedException();
 
@@ -106,7 +108,7 @@ namespace System.Web
                 {
                     if (_request.HttpContext.Features.Get<IServerVariablesFeature>() is IServerVariablesFeature feature)
                     {
-                        _serverVariables = new(feature);
+                        _serverVariables = feature.ToNameValueCollection();
                     }
                     else
                     {
@@ -120,7 +122,7 @@ namespace System.Web
 
         public bool IsSecureConnection => _request.IsHttps;
 
-        public NameValueCollection QueryString => throw new NotImplementedException();
+        public NameValueCollection QueryString => _query ??= _request.Query.ToNameValueCollection();
 
         public bool IsLocal
         {
